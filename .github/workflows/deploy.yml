@@ -1,0 +1,41 @@
+name: Build and Deploy Infrastructure
+
+on:
+    push:
+        branches: ["main"]
+    pull_request:
+
+permissions:
+    id-token: write         #req for requesting the JWT token for OIDC
+    contents: read          #req for actions/checkout
+
+env:
+    AWS_REGION: us-east-1
+
+jobs:
+    validate-and-plan:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v3
+
+            - name: Configure AWS Credentials (OIDC)
+              uses: aws-actions/configure-aws-credentials@v4
+              with: 
+                role-to-assume: ${{ secrets.AWS_ROLE_ARN }} 
+                aws-region: ${{ env.AWS_REGION }}
+                
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v2
+              
+            - name: Terraform Init
+              working-directory: ./infrastructure/dev
+              run: terraform init
+
+            - name: Terraform Validate
+              working-directory: ./infrastructure/dev
+              run: terraform validate
+
+            - name: Terraform Plan
+              working-directory: ./Infrastructure/dev
+              run: terraform apply
