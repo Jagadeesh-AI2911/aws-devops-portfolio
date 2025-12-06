@@ -37,5 +37,5 @@ jobs:
               run: terraform validate
 
             - name: Terraform Plan
-              working-directory: ./Infrastructure/dev
+              working-directory: ./infrastructure/dev
               run: terraform apply
