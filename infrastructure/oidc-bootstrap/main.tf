@@ -2,55 +2,56 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# 1. The OIDC Provider (Connects GitHub to AWS)
-resource "aws_iam_openid_connect_provider" "github" {
-  url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [
-    "6938fd4d98bab03faadb97b34396831e3780aea1",
-    "1c58a3a8518e8759bf075b76b15024316a436220"
-  ]
-}
+# 1. The Virtual Private Cloud (VPC)
+resource "aws_vpc" "main" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
 
-# 2. The Trust Policy (Who can log in?)
-data "aws_iam_policy_document" "github_trust" {
-  statement {
-    actions = ["sts:AssumeRoleWithWebIdentity"]
-    effect  = "Allow"
-
-    principals {
-      type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github.arn]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "token.actions.githubusercontent.com:aud"
-      values   = ["sts.amazonaws.com"]
-    }
-
-    condition {
-      test     = "StringLike"
-      variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:Jagadeesh-AI2911/aws-devops-portfolio:*"]
-    }
+  tags = {
+    Name        = "portfolio-vpc"
+    Environment = "dev"
+    Project     = "aws-devops-portfolio"
   }
 }
 
-# 3. The IAM Role
-resource "aws_iam_role" "github_actions" {
-  name               = "GitHubActions-OIDC-Role"
-  assume_role_policy = data.aws_iam_policy_document.github_trust.json
+# 2. Internet Gateway (IGW) - To talk to the internet
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "portfolio-igw"
+  }
 }
 
-# 4. Attach Permissions (AdministratorAccess for Portfolio Simplicity)
-resource "aws_iam_role_policy_attachment" "admin" {
-  role       = aws_iam_role.github_actions.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+# 3. Public Subnet (Where the Load Balancer lives)
+resource "aws_subnet" "public" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true # Instances get public IPs automatically
+  availability_zone       = "us-east-1a"
+
+  tags = {
+    Name = "portfolio-public-subnet"
+  }
 }
 
-# 5. Output the ARN (You will need this for GitHub Secrets)
-output "role_arn" {
-  value       = aws_iam_role.github_actions.arn
-  description = "Copy this ARN to your GitHub Repository Secrets"
+# 4. Route Table (The GPS for traffic)
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = {
+    Name = "portfolio-public-rt"
+  }
+}
+
+# 5. Associate Route Table with Subnet
+resource "aws_route_table_association" "public_assoc" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.public_rt.id
 }
