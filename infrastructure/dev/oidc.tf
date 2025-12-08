@@ -41,7 +41,7 @@ data "aws_iam_policy_document" "github_trust" {
 
 # 3. The Role
 resource "aws_iam_role" "github_actions" {
-  name               = "GitHub-Actions-OIDC-Role"
+  name               = "GitHubActions-OIDC-Role"
   assume_role_policy = data.aws_iam_policy_document.github_trust.json
 }
 
