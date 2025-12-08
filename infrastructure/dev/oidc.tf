@@ -1,13 +1,17 @@
 # 1. The OIDC Provider
-resource "aws_iam_openid_connect_provider" "github" {
-  url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
-  # GitHub's thumbprints (Always check AWS docs for latest, but these are standard)
-  thumbprint_list = [
-    "6938fd4d98bab03faadb97b34396831e3780aea1",
-    "1c58a3a8518e8759bf075b76b15024316a436220"
-  ]
+# resource "aws_iam_openid_connect_provider" "github" {
+#   url             = "https://token.actions.githubusercontent.com"
+#   client_id_list  = ["sts.amazonaws.com"]
+#   # GitHub's thumbprints (Always check AWS docs for latest, but these are standard)
+#   thumbprint_list = [
+#     "6938fd4d98bab03faadb97b34396831e3780aea1",
+#     "1c58a3a8518e8759bf075b76b15024316a436220"
+#   ]
+# }
+data "aws_iam_openid_connect_provider" "github" {
+  url = "https://token.actions.githubusercontent.com"
 }
+
 
 # 2. The Trust Policy (Who can log in?)
 data "aws_iam_policy_document" "github_trust" {
@@ -17,7 +21,7 @@ data "aws_iam_policy_document" "github_trust" {
 
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github.arn]
+      identifiers = [data.aws_iam_openid_connect_provider.github.arn]
     }
 
     condition {
@@ -30,7 +34,7 @@ data "aws_iam_policy_document" "github_trust" {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
       # REPLACE 'my-user' with your GitHub username
-      values   = ["repo:Jagadeesh-AI2911/aws-devops-portfolio:*"]
+      values   = ["repo:my-Jagadeesh-AI2911/aws-devops-portfolio:*"]
     }
   }
 }
