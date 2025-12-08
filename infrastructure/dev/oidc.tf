@@ -34,7 +34,7 @@ data "aws_iam_policy_document" "github_trust" {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
       # REPLACE 'my-user' with your GitHub username
-      values   = ["repo:my-Jagadeesh-AI2911/aws-devops-portfolio:*"]
+      values   = ["repo:Jagadeesh-AI2911/aws-devops-portfolio:*"]
     }
   }
 }
