@@ -125,3 +125,51 @@ resource "aws_security_group" "app_sg" {
     description = "allow all outbound"
   }
 }
+
+# -------------------------------------------------------------
+# The Web Server (Compute Layer)
+# -------------------------------------------------------------
+
+
+# 9. Dynamic AMI Lookup (Get latest Amazon Linux 2023)
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023.*-x86_64"]
+  }
+}
+
+# 10. The Web Server Instance
+resource "aws_instance" "web_server" {
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = "t2.micro" 
+  subnet_id     = aws_subnet.public.id
+
+  # Security Group: We use the ALB SG for now because it allows HTTP from Anywhere.
+  # In a later step (Day 4), we will move this to the App SG when we add a Load Balancer.
+  vpc_security_group_ids = [aws_security_group.alb_sg.id]
+
+  # User Data: This script runs ONLY once when the instance starts.
+  # It installs Nginx and creates a custom HTML page.
+  user_data = <<-EOF
+              #!/bin/bash
+              dnf update -y
+              dnf install -y nginx
+              systemctl start nginx
+              systemctl enable nginx
+              echo "<h1>Deployed via Terraform</h1><p>Welcome to Jagadeesh's Portfolio Project!</p>" > /usr/share/nginx/html/index.html
+              EOF
+
+  tags = {
+    Name = "portfolio-web-server"
+  }
+}
+
+# 11. Output the URL (So you can click it easily)
+output "web_server_url" {
+  value       = "http://${aws_instance.web_server.public_ip}"
+  description = "Click the URL to see deployed website"
+}
