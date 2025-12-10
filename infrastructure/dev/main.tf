@@ -146,11 +146,11 @@ data "aws_ami" "amazon_linux" {
 resource "aws_instance" "web_server" {
   ami           = data.aws_ami.amazon_linux.id
   instance_type = "t2.micro" 
-  subnet_id     = aws_subnet.public.id
+  subnet_id     = aws_subnet.Public.id
 
   # Security Group: We use the ALB SG for now because it allows HTTP from Anywhere.
   # In a later step (Day 4), we will move this to the App SG when we add a Load Balancer.
-  vpc_security_group_ids = [aws_security_group.alb_sg.id]
+  vpc_security_group_ids = [aws_security_group.portfolio_alb_sg.id]
 
   # User Data: This script runs ONLY once when the instance starts.
   # It installs Nginx and creates a custom HTML page.
