@@ -168,7 +168,13 @@ resource "aws_launch_template" "app_lt" {
               dnf install -y nginx
               systemctl start nginx
               systemctl enable nginx
-              INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+              # 1. Get the Session Token (valid for 6 hours)
+              TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+              
+              # 2. Use the Token to get the Instance ID
+              INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -s http://169.254.169.254/latest/meta-data/instance-id)
+              
+              # 3. Create the page
               echo "<h1>High Availability Cluster</h1><p>Served by instance: $INSTANCE_ID</p>" > /usr/share/nginx/html/index.html
               EOF
   )
