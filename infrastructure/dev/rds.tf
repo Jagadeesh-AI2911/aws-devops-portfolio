@@ -2,7 +2,7 @@
 
 resource "aws_db_subnet_group" "main" {
     name        = "portfolio-db-subnet-group"
-    subnet_ids  = [aws_subnet_private.id]
+    subnet_ids  = [aws_subnet.private_1.id, aws_subnet.private_2.id]
     tags = {
         Name            = "portfolio-db-subnet-group"
         Environment     = "dev"
