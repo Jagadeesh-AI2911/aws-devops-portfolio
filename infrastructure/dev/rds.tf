@@ -1,7 +1,3 @@
-provider "aws" {
-    region = "us-east-1"
-}
-
 # 1. database subnet group (this tells RDS to use only these subnets)
 
 resource "aws_db_subnet_group" "main" {
