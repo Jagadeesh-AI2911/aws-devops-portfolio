@@ -12,14 +12,19 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
 
   tags = {
-    Name = "portfolio-vpc"
-    Environment = "dev"
-    Project = "portfolio"
+    Name          = "portfolio-vpc"
+    Environment   = "dev"
+    Project       = "portfolio"
   }
 }
 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
+  tags = {
+    Name          = "portfolio-igw"
+    Environment   = "dev"
+    Project       = "portfolio"
+  }
 }
 
 # Subnet 1 (Zone A)
@@ -30,9 +35,9 @@ resource "aws_subnet" "public_1" {
   availability_zone       = "us-east-1a"
 
   tags = { 
-    Name = "portfolio-public-subnet-1" 
-    Environment = "dev"
-    Project = "portfolio"
+    Name            = "portfolio-public-subnet-1" 
+    Environment     = "dev"
+    Project         = "portfolio"
   }
 }
 
@@ -44,9 +49,9 @@ resource "aws_subnet" "public_2" {
   availability_zone       = "us-east-1b"
 
   tags = { 
-    Name = "portfolio-public-subnet-2" 
-    Environment = "dev"
-    Project = "portfolio"
+    Name            = "portfolio-public-subnet-2" 
+    Environment     = "dev"
+    Project         = "portfolio"
   }
 }
 
@@ -57,9 +62,9 @@ resource "aws_route_table" "public_rt" {
     gateway_id = aws_internet_gateway.igw.id
   }
   tags = {
-    Name = "portfolio-public-route-table"
-    Environment = "dev"
-    Project = "portfolio"
+    Name          = "portfolio-public-route-table"
+    Environment   = "dev"
+    Project       = "portfolio"
   }
 }
 
@@ -86,9 +91,9 @@ resource "aws_security_group" "alb_sg" {
   vpc_id      = aws_vpc.main.id
   depends_on  = [aws_vpc.main]
   tags = {
-    Name = "portfolio-alb-sg"
+    Name        = "portfolio-alb-sg"
     Environment = "dev"
-    Project = "portfolio"
+    Project     = "portfolio"
   }
 
   ingress {
@@ -112,9 +117,9 @@ resource "aws_security_group" "asg_sg" {
   vpc_id      = aws_vpc.main.id
   depends_on  = [aws_vpc.main]
   tags = {
-    Name = "portfolio-asg-sg"
+    Name        = "portfolio-asg-sg"
     Environment = "dev"
-    Project = "portfolio"
+    Project     = "portfolio"
   }
 
   ingress {
@@ -144,9 +149,9 @@ data "aws_ami" "amazon_linux" {
     values = ["al2023-ami-2023.*-x86_64"]
   }
   tags = {
-    Name = "Lates-AMI"
+    Name        = "Lates-AMI"
     Environment = "dev"
-    Project = "portfolio"
+    Project     = "portfolio"
   }
 }
 
@@ -179,9 +184,9 @@ resource "aws_launch_template" "app_lt" {
               EOF
   )
   tags = {
-    Name = "portfolio-app-lt"
+    Name        = "portfolio-app-lt"
     Environment = "dev"
-    Project = "portfolio"
+    Project     = "portfolio"
   }
 }
 
@@ -216,9 +221,9 @@ resource "aws_lb" "app_alb" {
   subnets            = [aws_subnet.public_1.id, aws_subnet.public_2.id]
   depends_on         = [aws_security_group.alb_sg]
   tags = {
-    Name = "portfolio-alb"
+    Name        = "portfolio-alb"
     Environment = "dev"
-    Project = "portfolio"
+    Project     = "portfolio"
   }
 }
 
@@ -234,9 +239,9 @@ resource "aws_lb_target_group" "app_tg" {
   }
   depends_on = [aws_lb.app_alb]
   tags = {
-    Name = "portfolio-app-tg"
+    Name        = "portfolio-app-tg"
     Environment = "dev"
-    Project = "portfolio"
+    Project     = "portfolio"
   }
 }
 
@@ -251,9 +256,9 @@ resource "aws_lb_listener" "http" {
   }
   depends_on = [aws_lb_target_group.app_tg]
   tags = {
-    Name = "portfolio-alb-listener"
+    Name        = "portfolio-alb-listener"
     Environment = "dev"
-    Project = "portfolio"
+    Project     = "portfolio"
   }
 }
 
