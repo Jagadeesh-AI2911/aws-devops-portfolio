@@ -39,6 +39,7 @@ resource "aws_db_instance" "default" {
     instance_class          = "db.t3.micro"
     identifier              = "portfolio-db"
     db_name                 = "appdb"
+    storage_encrypted       = true
     username                = "adminuser"
     password                = "securepassword123"
     db_subnet_group_name    = aws_db_subnet_group.main.name
