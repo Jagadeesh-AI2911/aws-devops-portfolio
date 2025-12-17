@@ -12,3 +12,8 @@ output "db_endpoint" {
 output "vpc_id" {
   value = aws_vpc.main.id
 }
+
+output "alb_url" {
+  description = "The Public URL of the Load Balancer"
+  value       = module.portfolio.alb_dns_name
+}
