@@ -15,5 +15,5 @@ output "vpc_id" {
 
 output "alb_url" {
   description = "The Public URL of the Load Balancer"
-  value       = module.portfolio.alb_dns_name
+  value       = module.portfolio-app.alb_dns_name
 }
