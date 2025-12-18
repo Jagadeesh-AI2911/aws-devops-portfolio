@@ -132,3 +132,51 @@ resource "aws_autoscaling_group" "app" {
   health_check_type         = var.enable_alb ? "ELB" : "EC2"
   health_check_grace_period = 300
 }
+
+# -------------------------------------------------------------
+# ROUTING (Connects Public Subnets to the Internet)
+# -------------------------------------------------------------
+
+# 1. Create a Route Table for Public Subnets
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"         # The Internet
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = { 
+    Name = "${var.environment}-public-rt" 
+    Environment = var.environment
+  }
+}
+
+# 2. Association: Link Public Subnets to this Route Table
+resource "aws_route_table_association" "public" {
+  count          = length(var.public_subnets)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_route_table.public.id
+  depends_on     = [aws_subnet.public]  
+}
+
+# 3. Create a Route Table for Private Subnets (Local Only)
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+  
+  # Note: No route to 0.0.0.0/0 (Internet)
+  # In a real Prod environment, i'll add a NAT Gateway here.
+
+  tags = { 
+    Name = "${var.environment}-private-rt" 
+    Environment = var.environment
+  }
+}
+
+# 4. Association: Link Private Subnets to the Private Route Table
+resource "aws_route_table_association" "private" {
+  count          = length(var.private_subnets)
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private.id
+  depends_on     = [aws_subnet.private]
+}
